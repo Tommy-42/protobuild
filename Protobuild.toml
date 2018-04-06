@@ -4,11 +4,28 @@ version = "unstable"
 # formatted into the --xxx_out flag provided to protoc. Below, we have an
 # example that selects the ctrd vanity binary.
 # generator = "gogoctrd"
+[[generator]]
+  name = "gotemplate"
 
-# Plugins allows one to specify one or more plugins for use in generation.
-#
-# The common example grpc is provided below.
-plugins = ["grpc"]
+  [generator.options]
+    debug = true
+    template_dir = "."
+
+[[generator]]
+  name = "gogo"
+
+  [[plugin]]
+    name = "grpc"
+
+    [plugin.options]
+      debug = true
+      
+  [[plugin]]
+    name = "govalidator"
+
+
+
+# plugins = ["grpc"]
 
 # Control protoc include paths. Below are usually some good defaults, but feel
 # free to try it without them if it works for your project.
@@ -119,26 +136,3 @@ prefix = "github.com/stevvooe/protobuild/examples"
 # Target defines the output location of the merged descriptor file.
 target = "examples/next.pb.txt"
 
-# Ignore files by their protobuf import path.
-#
-# This operates directly on the FileDescriptorProto.Name field, so it will
-# filter out imported protobufs. This allows one to remove descriptors from the
-# result that don't impact API stability, such as generation extension
-# directives.
-#
-# The example below will exclude empty.proto. Experiment with this feature by
-# uncommenting the line below and notice that the description of that file will
-# be removed.
-# ignore_files = ["google/protobuf/empty.proto"]
-
-# TODO(stevvooe): Possibly automate build rejection under certain classes of
-# changes. Left alone now until we get a solid idea about the noise present in
-# this process.
-#
-
-# Remember that you can have multiple aggregation points for descriptors. Here,
-# we aggregate the descriptors for examples/foo, in addition to the above.
-# Uncomment these lines to try it out!
-# [[descriptors]]
-# target = "examples/foo/descriptors.pb.txt"
-# prefix = "github.com/stevvooe/protobuild/examples/foo"

@@ -32,7 +32,7 @@ func init() {
 func main() {
 	flag.Parse()
 
-	c, err := readConfig(configPath)
+	c, err := readConfigV2(configPath)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -131,11 +131,10 @@ func main() {
 		includes = append(includes, gopath)
 		includes = append(includes, c.Includes.After...)
 
-		protoc := protocCmd{
-			Name:       c.Generator,
+		protoc := protocCmdV2{
 			ImportPath: pkg.GoImportPath,
 			PackageMap: c.Packages,
-			Plugins:    c.Plugins,
+			Generator:  c.Generator,
 			Files:      pkg.ProtoFiles,
 			OutputDir:  outputDir,
 			Includes:   includes,
@@ -147,13 +146,18 @@ func main() {
 		}
 
 		if override, ok := overrides[importDirPath]; ok {
-			// selectively apply the overrides to the protoc structure.
-			if override.Generator != "" {
-				protoc.Name = override.Generator
-			}
 
-			if override.Plugins != nil {
-				protoc.Plugins = *override.Plugins
+			for _, generator := range protoc.Generator {
+				// selectively apply the overrides to the protoc structure.
+				if override.Generator != generator.Name {
+					generator.Name = override.Generator
+
+					var plugins []Plugin
+					for _, op := range *override.Plugins {
+						plugins = append(plugins, Plugin{Name: op, Options: nil})
+					}
+					generator.Plugin = &plugins
+				}
 			}
 		}
 
